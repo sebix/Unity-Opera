@@ -16,7 +16,7 @@ import sys, os, commands, subprocess, re
 
 loop = GObject.MainLoop()
 
-# Global variables
+# Initialization of global variables
 home = os.getenv("HOME")
 current_tabs = 0
 current_speeddial = ""
@@ -27,12 +27,13 @@ bool_speeddial = False
 bool_count_tabs = False
 bool_urgency = False
 bool_progress_bar = False
+log_level = 1
 
 # Set version of Opera here from command args or assume opera (opera, opera-next)
-#         format: python unity-opera.py (opera or opera-next) (-qcup)
+#         format: python unity-opera.py (opera | opera-next) (-lscup -v | -q)
 if len(sys.argv) > 2:
 	opera = sys.argv[1]
-	if "q" in sys.argv[2]:
+	if "l" in sys.argv[2]:
 		bool_quicklist = True
 	if "s" in sys.argv[2]:
 		bool_speeddial = True
@@ -42,30 +43,40 @@ if len(sys.argv) > 2:
 		bool_urgency = True
 	if "p" in sys.argv[2]:
 		bool_progress_bar = True
+	if "v" in sys.argv[2]:
+		log_level = 0
+	if "q" in sys.argv[2]:
+		log_level = 2
 elif len(sys.argv) > 1:
 	if "--help" in sys.argv[1]:
-		print "Usage: python unity-opera.py [opera channel] [options]\n"
-		print "Opera channels:\n"
-		print " opera"
-		print " opera-next\n"
-		print "Options:\n"
-		print " q           Enable basic quicklist"
-		print " s           Enable Speed Dial entries in quicklist"
-		print " c           Enable tab count"
-		print " u           Enable urgency notification"
-		print " p           Enable progress bar for downloads\n"
-		print "Notes:\n"
-		print " * Opera channels and Options are both optional"
-		print " * Options requires use of Opera channels arg"
-		print " * Progress bar for downloads is not functional at"
-		print "   this time and may not be possible.\n"
-		print "Example usage:\n"
-		print " Use all available features"
-		print " * python unity-opera.py\n"
-		print " Count tabs and use urgency notification"
-		print " * python unity-opera.py opera -cu\n"
-		print " Use Opera Next and only Quicklist with Speed Dial entries"
-		print " * python unity-opera.py opera-next -qs"
+		print "\t\tOpera-Unity\n\
+Usage: python unity-opera.py [opera channel] [options]\n\
+Opera channels:\n\
+	* opera\n\
+	* opera-next\n\
+\n\
+Options:\n\
+	-l	Enable basic quicklist\n\
+	-s	Enable Speed Dial entries in quicklist\n\
+	-c	Enable tab count\n\
+	-u	Enable urgency notification\n\
+	-p	Enable progress bar for downloads\n\
+	-v	Enable LogLevel 'verbose'\n\
+	-q	Enable LogLevel 'quiet'\n\
+\n\
+Notes:\n\
+	* Opera channels and Options are both optional\n\
+	* Options requires use of Opera channels arg\n\
+	* Progress bar for downloads is not functional at\n\
+	  this time and may not be possible.\n\
+\n\
+Example usage:\n\
+	Use all available features\n\
+		$ python unity-opera.py\n\
+	Count tabs and use urgency notification\n\
+		$ python unity-opera.py opera -cu\n\
+	Use Opera Next and only Quicklist with Speed Dial entries\n\
+		$ python unity-opera.py opera-next -ls"
 		exit()
 	opera = sys.argv[1]
 	bool_quicklist = True
@@ -84,6 +95,26 @@ else:
 # Pretend to be opera
 launcher = Unity.LauncherEntry.get_for_desktop_id (opera + "-browser.desktop")
 
+
+########################################################
+# log(message, priority)
+#
+# Author: https://github.com/sebix
+# Description: Send output, depending on log level
+# Log Levels:
+# * 0 Verbose
+# * 1 normal
+# * 2 Quiet
+########################################################
+def log(message, priority = 1):
+	global log_level;
+	if priority >= log_level:
+		print message
+		return True
+	else:
+		return False
+
+
 ########################################################
 # is_opera_running()
 #
@@ -91,8 +122,8 @@ launcher = Unity.LauncherEntry.get_for_desktop_id (opera + "-browser.desktop")
 ########################################################
 def is_opera_running():
 	output = commands.getoutput("ps -A | grep '" + opera + "' | awk '{print $4}'").split('\n')
-	for i in range(len(output)):
-		if output[i] == opera:
+	for i in output:
+		if i == opera:
 			return True
 	return False
 
@@ -125,7 +156,7 @@ def update_quicklist():
 
 	# Make sure the speed dial file exists before attempting to read it
 	if not os.path.isfile(home + "/." + opera + "/speeddial.ini"):
-		print "Error: Unable to open " + home + "/." + opera + "/speeddial.ini"
+		log("Error: Unable to open " + home + "/." + opera + "/speeddial.ini", 2)
 		exit()
 	else:
 		if bool_speeddial:
@@ -136,7 +167,7 @@ def update_quicklist():
 					return True
 				else:
 					current_speeddial = temp
-					print "Updating Quicklist with Speed Dial entries:"
+					log("Updating Quicklist with Speed Dial entries:", 1)
 				file.close()
 			except IOError:
 				pass
@@ -191,7 +222,7 @@ def update_quicklist():
 					item5.property_set_bool (Dbusmenu.MENUITEM_PROP_VISIBLE, True)
 					item5.connect ("item-activated", menu_open_speeddial_item, url)
 					ql.child_append (item5)
-					print "  " + title + " " + url
+					log("  " + title + " " + url, 1)
 				pass # do something
 			file.close
 
@@ -215,7 +246,7 @@ def update_tabs():
 	
 	# Make sure the session file exists before attempting to read it
 	if not os.path.isfile(home + "/." + opera + "/sessions/autosave.win"):
-		print "Error: Unable to open " + home + "/." + opera + "/sessions/autosave.win"
+		log("Error: Unable to open " + home + "/." + opera + "/sessions/autosave.win", 2)
 		exit()
 	
 	try:
@@ -244,7 +275,7 @@ def update_tabs():
 		if tabs > current_tabs:
 			tab_count_changed = True
 		current_tabs = tabs
-		print "Updating tab count"
+		log("Updating tab count",0)
 	else:
 		launcher.set_property("count", 0)
 		launcher.set_property("count_visible", False)
