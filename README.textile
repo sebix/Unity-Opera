@@ -1,0 +1,12 @@
+h1. Unity-Opera
+
+Unity-Opera integrates the "Opera-Browser":http://www.opera.com/browser/download/ into your "Unity-Desktop Environment":http://unity.ubuntu.com/ (Ubuntu GNU/Linux 11.04 Maverick Meerkat)
+
+
+h2. Origin
+
+This is a Fork from "kyleabaker":https://github.com/kyleabaker/ / "Unity-Opera":https://github.com/kyleabaker/Unity-Opera
+
+h2. Usage
+
+see @$ ./unity-opera.py --help@
