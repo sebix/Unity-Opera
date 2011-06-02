@@ -91,12 +91,9 @@ launcher = Unity.LauncherEntry.get_for_desktop_id (opera + "-browser.desktop")
 ########################################################
 def is_opera_running():
 	output = commands.getoutput("ps -A | grep '" + opera + "' | awk '{print $4}'").split('\n')
-	i = 0
-	while i < len(output):
+	for i in range(len(output)):
 		if output[i] == opera:
 			return True
-		i = i + 1
-		pass # do something
 	return False
 
 
