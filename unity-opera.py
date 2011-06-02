@@ -226,15 +226,13 @@ def update_tabs():
 	except IOError:
 		pass
 	
-	while 1:
-		line = file.readline()
-		if not line:
-			break
+	line = file.readline();
+	while line:
 		if "window count" in line:
 			tabs = int(line[line.find("=")+1:len(line)])
 		elif "type=0" in line:
-			windows = windows + 1
-		pass # do something
+			windows += 1
+		line = file.readline();
 	file.close
 	tabs = tabs - windows
 
