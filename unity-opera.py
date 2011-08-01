@@ -132,8 +132,7 @@ def menu_open_new_private_tab(a, b):
 def menu_open_new_window(a, b):
 	os.popen3(args.program + " -newwindow")
 def menu_open_mail(a, b):
-	os.popen3(args.program + " -mail")
-	#TODO: Fix this command so it actually opens M2
+	os.popen3(args.program + " --remote 'openM2(new-window)'")
 def menu_open_speeddial_item(a, b, url):
 	os.popen3(args.program + " " + url)
 def update_quicklist():
